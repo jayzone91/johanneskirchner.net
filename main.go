@@ -1,52 +1,31 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
+	"context"
+	"embed"
+	"log/slog"
+	"os"
+	"os/signal"
 
-	lua "github.com/yuin/gopher-lua"
+	"github.com/joho/godotenv"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	L := lua.NewState()
-	defer L.Close()
-
-	// Beispiel-Daten aus dem Backend
-	data := map[string]string{
-		"title":   "Hello, World! Perter123",
-		"message": "Welcome to my website! Oder auch nicht",
-	}
-
-	// Daten manuell in eine Lua-Tabelle umwandeln
-	luaData := L.NewTable()
-	for key, value := range data {
-		L.SetTable(luaData, lua.LString(key), lua.LString(value))
-	}
-	L.SetGlobal("data", luaData)
-
-	if err := L.DoFile("template.lua"); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	luaValue := L.GetGlobal("Render")
-	if luaValue.Type() == lua.LTFunction {
-		if err := L.CallByParam(lua.P{
-			Fn:      luaValue,
-			NRet:    1,
-			Protect: true,
-		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		rendered := L.Get(-1).String()
-		L.Pop(1)
-		fmt.Fprintf(w, rendered)
-	}
-}
+var files embed.FS
 
 func main() {
-	http.HandleFunc("/", handler)
+	godotenv.Load()
 
-	http.ListenAndServe(":3000", nil)
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
+	app, err := app.New(logger, app.Config{}, files)
+	if err != nil {
+		logger.Error("failed to create app", slog.Any("error", err))
+	}
+
+	if err := app.Start(ctx); err != nil {
+		logger.Error("failed to start app", slog.Any("error", err))
+	}
 }
