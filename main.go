@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/jayzone91/johanneskirchner.net/internal/app"
 	"github.com/joho/godotenv"
 )
 

@@ -10,21 +10,40 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/jayzone91/johanneskirchner.net/internal/middleware"
+	"github.com/jayzone91/johanneskirchner.net/internal/service/realip"
+	"github.com/jayzone91/johanneskirchner.net/internal/util/flash"
+	"github.com/redis/go-redis/v9"
 )
 
 type App struct {
 	config     Config
 	files      fs.FS
 	logger     *slog.Logger
+	rdb        *redis.Client
 	ipresolver *realip.Service
 }
 
 func New(logger *slog.Logger, config Config, files fs.FS) (*App, error) {
+	redisURL, ok := os.LookupEnv("REDIS_URL")
+	if !ok {
+		return nil, fmt.Errorf("Must set redis URL")
+	}
+
+	cfg, err := redis.ParseURL(redisURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse redis url: %w", err)
+	}
+
+	rdb := redis.NewClient(cfg)
+
 	return &App{
 		config:     config,
 		logger:     logger,
 		files:      files,
-		upresolver: realip.New(realip.LstXFFIResolver),
+		rdb:        rdb,
+		ipresolver: realip.New(realip.LastXFFIPResolver),
 	}, nil
 }
 
@@ -34,7 +53,7 @@ func (a *App) Start(ctx context.Context) error {
 		return fmt.Errorf("failed when loading routes: %w", err)
 	}
 
-	middlewares := middleware.Chain(a.ipresolver.Middleware(), middleware.Loggin(a.logger), flash.Middleware)
+	middlewares := middleware.Chain(a.ipresolver.Middleware(), middleware.Logging(a.logger), flash.Middleware)
 
 	port := getPort(3000)
 	srv := &http.Server{

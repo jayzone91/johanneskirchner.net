@@ -8,12 +8,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jayzone91/johanneskirchner.net/internal/component"
+	"github.com/jayzone91/johanneskirchner.net/internal/service/realip"
+	"github.com/jayzone91/johanneskirchner.net/internal/util/flash"
+	"github.com/jayzone91/johanneskirchner.net/internal/util/shortid"
 	"github.com/redis/go-redis/v9"
-
-	"github.com/dreamsofcode-io/zenbin/internal/component"
-	"github.com/dreamsofcode-io/zenbin/internal/service/realip"
-	"github.com/dreamsofcode-io/zenbin/internal/util/flash"
-	"github.com/dreamsofcode-io/zenbin/internal/util/shortid"
 )
 
 type Handler struct {
@@ -24,12 +23,10 @@ type Handler struct {
 
 func New(
 	logger *slog.Logger,
-	rdb *redis.Client,
 	ipService *realip.Service,
 ) *Handler {
 	return &Handler{
 		logger:     logger,
-		rdb:        rdb,
 		ipResolver: ipService,
 	}
 }
@@ -98,7 +95,7 @@ func (h *Handler) CreateSnippet(w http.ResponseWriter, r *http.Request) {
 		scheme = "https"
 	}
 
-	uri := fmt.Sprintf("%s://%s/%s", scheme, host, shortid.GetShortID(id))
+	uri := fmt.Sprintf("%s://%s/%s", scheme, host, shortid.GetShortId(id))
 
 	http.Redirect(w, r, uri, http.StatusFound)
 }

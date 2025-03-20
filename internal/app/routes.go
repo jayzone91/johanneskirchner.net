@@ -5,6 +5,9 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+
+	"github.com/jayzone91/johanneskirchner.net/internal/component"
+	"github.com/jayzone91/johanneskirchner.net/internal/handler"
 )
 
 func (a *App) loadPages(router *http.ServeMux) {
