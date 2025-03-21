@@ -1,0 +1,22 @@
+package component
+
+templ Page(title string) {
+<html lang="de" class="font-geist">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="/static/css/style.css" rel="stylesheet" />
+  <title>{ title } Johannes Kirchner</title>
+</head>
+
+<body
+  class="bg-base-100 text-base-content min-h-[100vh] print:min-h-min print:bg-neutral print:text-neutral-content antialiased">
+  <div class="container mx-auto mt-5 print:block print:mt-0 print:w-full">
+    { children... }
+  </div>
+</body>
+
+</html>
+}
