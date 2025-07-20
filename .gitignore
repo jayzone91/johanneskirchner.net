@@ -22,20 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-
-# Backend Stuff
-golang-backend.exe
-/tmp
-/main.exe
-/db/*.go
-/cms/*.go
-/src/db/query_sql.ts
-
-.env
-/static/css/style.css
-
-*_templ.go
-*_templ.txt
-
-static/index.js
